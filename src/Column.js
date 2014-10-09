@@ -35,13 +35,14 @@ Ext.define('Ext.ux.ColumnTree.Column', {
 	header:false,		
 	layout:"fit",
 	border:false,
+	padding:3,
 	items:[{
 		frame:true,
 		xtype: 'grid',
 		enableColumnMove:false,
 		enableColumnResize:false,
 		bind:{
-			title:"{rootNode.Title}",
+			title:"{rootNode.Title}&nbsp;",
 			store:{
 				type:"chained",
 				source:"{treeStore}",
