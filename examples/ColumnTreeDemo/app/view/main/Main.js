@@ -46,6 +46,9 @@ Ext.define('ColumnTreeDemo.view.main.Main', {
         region: 'center',
         xtype:"columntreeview",
         title:"My Tree Columns",
+        root:{
+            Title:"Top Level"
+        },
         store:{
             type:"tree",
             storeId:"MyTreeStore",

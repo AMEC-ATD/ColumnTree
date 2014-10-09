@@ -1,90 +1,90 @@
 Ext.define('Ext.ux.ColumnTree.Column', {
-	extend: 'Ext.panel.Panel',
+	extend: 'Ext.grid.Panel',
 	alias: 'widget.columntreecolumn',
 
 	requries:[
-		'Ext.layout.container.Fit',
-		'Ext.grid.panel'
 	],
 
 	config:{
 		rootNode:null
 	},
 
+	viewModel:{
+
+	},
+
+	flex:1,
+	collapsible: true,
+	collapseDirection: Ext.Component.DIRECTION_LEFT,
+	animCollapse: true,
+	//collapseMode:"mini",
+	hideCollapseTool: true,
+	frame:true,
+	enableColumnMove:false,
+	enableColumnResize:false,
+	emptyText:"No Entries Found",
+	hideHeaders:true,
+	store:{
+		type:"chained"
+	},
+	viewConfig: {
+		emptyText:"No Entries Found",
+		deferEmptyText:false,
+		getRowClass:function(record, index, rowParams, store) {
+			return record.get("disabled") ? "row-disabled" : "row-enabled";
+		}
+	},
+
 	updateRootNode:function(root) {
 		if(!Ext.isEmpty(this.nextSibling())) {
 			this.nextSibling().setRootNode(null);
 		}
-		if(!Ext.isEmpty(root)) {
-			this.getViewModel().set("rootNode",root);
+		if(!Ext.isEmpty(root)) {		
+			this.setTitle(root.get("Title"));
+
+			if(this.getStore().isStore) {
+				this.getStore().clearFilter();
+				this.getStore().addFilter({
+					filterFn:this.filterFn,
+					root:root
+				});
+			}
 		}
 		else {
 			this.ownerCt.remove(this);
 		}
 	},
 
-	viewModel:{
-
-	},
-
-	collapsible: true,
-	collapseDirection: Ext.Component.DIRECTION_LEFT,
-	animCollapse: true,
-	autoDestroy: false,
-	hideCollapseTool: true,
-	header:false,		
-	layout:"fit",
-	border:false,
-	padding:3,
-	items:[{
-		frame:true,
-		xtype: 'grid',
-		enableColumnMove:false,
-		enableColumnResize:false,
-		bind:{
-			title:"{rootNode.Title}&nbsp;",
-			store:{
-				type:"chained",
-				source:"{treeStore}",
-				filters:[{
-					filterFn:function(item) {
-						return this.getRoot().findChild(this.getRoot().idProperty,item.get(this.getRoot().idProperty));
-					},
-					root:"{rootNode}"
-				}]
-			}
-	
-		},
-		columns:[{ flex:2, dataIndex:"Title", hideable: false}],
-		viewConfig: {
-			emptyText:"No Entries Found",
-			deferEmptyText:false,
-			getRowClass:function(record, index, rowParams, store) {
-				return record.get("disabled") ? "row-disabled" : "row-enabled";
-			}
-		},
-		emptyText:"No Entries Found",
-		hideHeaders:true
-	}],
-
-	initComponent:function() {
+	initComponent: function() {
 		this.callParent(arguments);
-		this.down("grid").on("selectionchange",this.selectionChanged,this);
+		this.getStore().setSource(this.getViewModel().get("treeStore"));
+		this.getStore().addFilter({
+			filterFn:this.filterFn,
+			root:this.getRootNode()
+		});		
 	},
 
-	selectionChanged: function(grid, selected) {
-		var node = selected[0];
-		if(!Ext.isEmpty(node)) {
-			node.expand(false, function() {
-				if(!Ext.isEmpty(this.nextSibling())) {
-					this.nextSibling().setRootNode(node);
-				}
-				else {
-					this.ownerCt.add({
-						rootNode:node
-					});
-				}			
-			},this);
+	filterFn:function(item) {
+		return this.getRoot().findChild(this.getRoot().idProperty,item.get(this.getRoot().idProperty));
+	},
+
+	listeners:{
+		'selectionchange': function(grid, selected) {
+			var node = selected[0];
+			if(!Ext.isEmpty(node)) {
+				node.expand(false, function() {
+					if(!Ext.isEmpty(this.nextSibling())) {
+						this.nextSibling().setRootNode(node);
+					}
+					else {
+						this.ownerCt.add(Ext.applyIf({
+							rootNode:node
+						},this.initialConfig));
+					}			
+				},this);
+			}
 		}
 	}
+
 });
+
