@@ -6,7 +6,7 @@
  * TODO - Replace this content of this view to suite the needs of your application.
  */
 Ext.define('ColumnTreeDemo.view.main.Main', {
-    extend: 'Ext.container.Container',
+    extend: 'Ext.panel.Panel',
 
     xtype: 'app-main',
 
@@ -27,6 +27,8 @@ Ext.define('ColumnTreeDemo.view.main.Main', {
         type: 'border'
     },
 
+    title:"My Tree Columns",
+
     items: [{
         xtype: 'panel',
         bind: {
@@ -45,7 +47,7 @@ Ext.define('ColumnTreeDemo.view.main.Main', {
     },{
         region: 'center',
         xtype:"columntreeview",
-        title:"My Tree Columns",
+        padding:5,
         root:{
             Title:"Top Level"
         },

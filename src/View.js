@@ -7,10 +7,6 @@ Ext.define('Ext.ux.ColumnTree.View', {
 		'Ext.layout.container.Border'
 	],
 
-	layout_old:{
-		type:'fullcolumn',
-	},
-
 	columnWidths:[1,2,1],
 
 	layout:"border",
@@ -18,10 +14,12 @@ Ext.define('Ext.ux.ColumnTree.View', {
 	defaultType:'columntreecolumn',
 
 	store:null, // must be a treestore
+
 	config: {
 		showIcons:false,
 		numColumns:3,
-		columns:null
+		columns:null,
+		levelOffset:10
 	},
 
 	viewModel:{
@@ -59,11 +57,14 @@ Ext.define('Ext.ux.ColumnTree.View', {
 		});
 	},
 	listeners:{
-		'add':function(container,comp, index) { this.redoLayout(); 	},
+		'add':function(container,comp, index) { 
+			this.redoLayout(); 
+			comp.on("expand",this.onPanelExpaneded,this);
+		},
 		'remove': function(container, comp) {this.redoLayout(); 	}
 	},
 	redoLayout:function() {
-			var panels = this.query('>panel');
+			var panels = this.query('>columntreecolumn');
 
 			var itemsToShow = Math.min(this.columnWidths.length,panels.length);
 			var indexOfFirstVisible = panels.length-itemsToShow;
@@ -90,11 +91,36 @@ Ext.define('Ext.ux.ColumnTree.View', {
 				}
 				else {
 					if(panel.getCollapsed() !== false) {
-						panel.expand();
+						panel.expand(false);
 					}
 					panel.setFlex(Math.round(this.columnWidths[i-indexOfFirstVisible]*100/total)/100);
+					if(!panel.rendered) {
+						var topMargin = i * this.getLevelOffset();
+						panel.margin = topMargin + " 0 0 0";
+					}
+					else {
+						panel.margin = 0;
+					}
 				}
 			}
+	},
+	onPanelExpaneded:function(panel) {
+		var panels = this.query(">columntreecolumn");
+
+		var itemsToShow = Math.min(this.columnWidths.length,panels.length);
+		var indexOfExpaneded = panels.indexOf(panel);
+
+		if(panels.length - itemsToShow > indexOfExpaneded) {
+			this.suspendEvent("remove");
+			var i, len;
+			for(i = indexOfExpaneded + itemsToShow, len = panels.length; i < len; i++) {
+				this.remove(panels[i]);				
+			}
+			panels[indexOfExpaneded + itemsToShow -1].setSelection();
+			this.resumeEvent("remove");
+			this.redoLayout();
+		}
+
 	}
 
 });

@@ -14,11 +14,9 @@ Ext.define('Ext.ux.ColumnTree.Column', {
 	},
 
 	flex:1,
-	collapsible: true,
 	collapseDirection: Ext.Component.DIRECTION_LEFT,
-	animCollapse: true,
+	animCollapse: 1,
 	//collapseMode:"mini",
-	hideCollapseTool: true,
 	frame:true,
 	enableColumnMove:false,
 	enableColumnResize:false,
