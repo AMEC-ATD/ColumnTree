@@ -67,7 +67,7 @@ Ext.define('Ext.ux.ColumnTree.View', {
 	listeners:{
 		'add':function(container,comp, index) { 
 			this.redoLayout(); 
-			comp.on("beforeexpand",this.onBeforePanelExpaneded,this);
+			comp.on("expand",this.onBeforePanelExpaneded,this);
 		},
 		'remove': function(container, comp) {this.redoLayout(); 	}
 	},
@@ -133,9 +133,9 @@ Ext.define('Ext.ux.ColumnTree.View', {
 					panel.collapse();
 				}
 				else if(colWidths[i] > 0 && panel.getCollapsed() !== false) {
-					panel.suspendEvent("beforeexpand");
+					panel.suspendEvent("expand");
 					panel.expand(false);
-					panel.resumeEvent("beforeexpand");
+					panel.resumeEvent("expand");
 				}
 
 
@@ -147,7 +147,9 @@ Ext.define('Ext.ux.ColumnTree.View', {
 		var panels = this.query(">columntreecolumn");
 
 		var indexOfExpaneded = panels.indexOf(panel);
-		
+		var needsLayout = false;
+
+
 		var i, len;
 		this.suspendEvent("remove");
 		for(i = indexOfExpaneded, len = panels.length; i < len; i++) {
@@ -157,11 +159,13 @@ Ext.define('Ext.ux.ColumnTree.View', {
 			else {
 				this.remove(panels.pop());
 				panels[panels.length-1].setSelection();
-
+				needsLayout = true;
 			}
 		}
 		this.resumeEvent("remove");
-		this.redoLayout();
+		if(needsLayout) {
+			this.redoLayout();
+		}
 	}
 
 });
