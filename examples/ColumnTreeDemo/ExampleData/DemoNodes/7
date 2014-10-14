@@ -5,6 +5,7 @@
 			"NodeID":8,
 			"Title":"(7-8) Downtown",
 			"State":1,
+			"leaf":true,
 			"ctime":"2013-06-06T22:20:07.49",
 			"mtime":"2013-06-06T22:20:07.49"
 		}

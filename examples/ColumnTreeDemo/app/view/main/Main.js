@@ -15,7 +15,10 @@ Ext.define('ColumnTreeDemo.view.main.Main', {
         'Ext.ux.ColumnTree.View',
         'ColumnTreeDemo.model.DemoNode',
         'Ext.data.TreeStore',
-        'Ext.data.proxy.Rest'
+        'Ext.data.proxy.Rest',
+        'Ext.tree.Panel',
+        'Ext.tree.View',
+        'Ext.tree.Column'
     ],
     
     controller: 'main',
@@ -47,6 +50,7 @@ Ext.define('ColumnTreeDemo.view.main.Main', {
     },{
         region: 'center',
         xtype:"columntreeview",
+        cls:'x-tree-arrows',
         padding:5,
         root:{
             Title:"Top Level"
@@ -63,10 +67,16 @@ Ext.define('ColumnTreeDemo.view.main.Main', {
             }
         },
         columnViews: [[
-            { flex:2, dataIndex:"Title", hideable: false}
-        ],[
+            { xtype: 'templatecolumn', tpl: '<img src="' + Ext.BLANK_IMAGE_URL+ '" class="x-tree-icon x-tree-icon-<tpl if="leaf">leaf<tpl else>parent</tpl> ">', width:26},
             { flex:2, dataIndex:"Title", hideable: false},
-            { flex:2, dataIndex:"State", hideable: false}
+            { xtype: 'templatecolumn', tpl: '<img src="' + Ext.BLANK_IMAGE_URL+ '" class="x-tree-elbow-img x-tree-elbow-plus x-tree-expander">', width:26}
+
+        ],[
+            { xtype: 'templatecolumn', tpl: '<img src="' + Ext.BLANK_IMAGE_URL+ '" class="x-tree-icon x-tree-icon-<tpl if="leaf">leaf<tpl else>parent</tpl> ">', width:26},
+            { flex:2, dataIndex:"Title", hideable: false},
+            { flex:2, dataIndex:"State", hideable: false},
+            { xtype: 'templatecolumn', tpl: '<img src="' + Ext.BLANK_IMAGE_URL+ '" class="x-tree-elbow-img x-tree-elbow-plus x-tree-expander">', width:26}
+
         ]],
         numColumnConfig:{
             1:{ colWidths:[1], colMap:[1]   },

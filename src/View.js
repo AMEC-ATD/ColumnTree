@@ -23,8 +23,10 @@ Ext.define('Ext.ux.ColumnTree.View', {
 			2:{ colWidths:[2,1], colMap:[0,0]	},
 			3:{ colWidths:[1,2,1], colMap:[0,0,0]	}
 		},
-		showIcons:false,
-		levelOffset:2
+		levelOffset:2,
+		panelConfig:{
+			collapseMode:'mini'
+		}
 	},
 
 	viewModel:{
@@ -52,9 +54,9 @@ Ext.define('Ext.ux.ColumnTree.View', {
 			callback:function() {
 				this.store.getRootNode().expand();
 				this.getViewModel().set("treeStore",this.store);
-				this.add({
+				this.add(Ext.apply({},{
 					rootNode:this.store.getRootNode()
-				});
+				},this.getPanelConfig()));
 			},
 			scope:this
 		});

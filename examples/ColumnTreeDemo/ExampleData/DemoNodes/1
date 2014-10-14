@@ -13,6 +13,7 @@
 			"NodeID":5,
 			"Title":"(1-5) United States",
 			"State":1,
+			"leaf":true,
 			"ctime":"2013-06-06T22:20:07.49",
 			"mtime":"2013-06-06T22:20:07.49"
 		}
