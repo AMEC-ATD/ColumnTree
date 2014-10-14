@@ -34,7 +34,7 @@ Ext.define('Ext.ux.ColumnTree.Column', {
 		}
 	},
 
-	updateRootNode:function(root) {
+	applyRootNode:function(root) {
 		if(!Ext.isEmpty(this.nextSibling())) {
 			this.nextSibling().setRootNode(null);
 		}
@@ -52,6 +52,7 @@ Ext.define('Ext.ux.ColumnTree.Column', {
 		else {
 			this.ownerCt.remove(this);
 		}
+		return root;
 	},
 
 	initComponent: function() {
