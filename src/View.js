@@ -7,7 +7,6 @@ Ext.define('Ext.ux.ColumnTree.View', {
 		'Ext.layout.container.Border'
 	],
 
-	columnWidths:[1,2,1],
 
 	layout:"border",
 
@@ -16,10 +15,16 @@ Ext.define('Ext.ux.ColumnTree.View', {
 	store:null, // must be a treestore
 
 	config: {
+		columnViews:[
+			[{ flex:2, dataIndex:"text", hideable: false}]
+		],
+		numColumnConfig:{
+			1:{ colWidths:[1], colMap:[0]	},
+			2:{ colWidths:[2,1], colMap:[0,0]	},
+			3:{ colWidths:[1,2,1], colMap:[0,0,0]	}
+		},
 		showIcons:false,
-		numColumns:3,
-		columns:null,
-		levelOffset:10
+		levelOffset:2
 	},
 
 	viewModel:{
@@ -27,7 +32,6 @@ Ext.define('Ext.ux.ColumnTree.View', {
 			treeStore:null
 		}
 	},
-
 
 	initComponent: function() {
 		if (Ext.isString(this.store)) {
@@ -49,51 +53,57 @@ Ext.define('Ext.ux.ColumnTree.View', {
 				this.store.getRootNode().expand();
 				this.getViewModel().set("treeStore",this.store);
 				this.add({
-					rootNode:this.store.getRootNode(),
-					columns:this.columns
+					rootNode:this.store.getRootNode()
 				});
 			},
 			scope:this
 		});
 	},
+
+	getColumnsForPanel: function(width) {
+		return this.columnViews[0];
+	},
+
 	listeners:{
 		'add':function(container,comp, index) { 
 			this.redoLayout(); 
-			comp.on("expand",this.onPanelExpaneded,this);
+			comp.on("beforeexpand",this.onBeforePanelExpaneded,this);
 		},
 		'remove': function(container, comp) {this.redoLayout(); 	}
 	},
 	redoLayout:function() {
 			var panels = this.query('>columntreecolumn');
 
-			var itemsToShow = Math.min(this.columnWidths.length,panels.length);
-			var indexOfFirstVisible = panels.length-itemsToShow;
+			var config = this.numColumnConfig[panels.length];
 
-			var total = 0;
-			var i;
-			for(i = 0; i < itemsToShow; i++) {
-				total += this.columnWidths[i];
-			}
+			var colWidths = [];
+			var colMap = [];
+			var i, len;
+			var panel;
 
 			for(i = 0, len = panels.length; i < len; i++) {
-				var panel = panels[i];
-				if(i < panels.length - 1) {
-					panel.setRegion("west");
+				panel = panels[i];
+				if(!Ext.isEmpty(this.numColumnConfig[panels.length - i])) {
+					Ext.Array.push(colWidths, this.numColumnConfig[panels.length - i].colWidths);
+					Ext.Array.push(colMap, this.numColumnConfig[panels.length - i].colMap);
+					break;
 				}
 				else {
-					this.getLayout().centerRegion = null;
-					panel.setRegion("center");
+					colWidths.push(0);
+					colMap.push(null);
 				}
-				if(i < indexOfFirstVisible) {
-					if(panel.getCollapsed() === false) {
-						panel.collapse();
-					}
-				}
-				else {
-					if(panel.getCollapsed() !== false) {
-						panel.expand(false);
-					}
-					panel.setFlex(Math.round(this.columnWidths[i-indexOfFirstVisible]*100/total)/100);
+				
+			}
+
+			Ext.suspendLayouts();
+
+			for(i = 0, len = panels.length; i < len; i++) {
+				panel = panels[i];
+
+				//1. set width (has to happen before regions change)
+				if(colWidths[i] > 0 ) {
+					panel.setFlex(colWidths[i]);
+
 					if(!panel.rendered) {
 						var topMargin = i * this.getLevelOffset();
 						panel.margin = topMargin + " 0 0 0";
@@ -101,26 +111,57 @@ Ext.define('Ext.ux.ColumnTree.View', {
 					else {
 						panel.margin = 0;
 					}
+					
 				}
+
+				//2. set region
+				if(i < panels.length - 1) {
+					panel.setRegion("west");
+				}
+				else {
+					this.getLayout().centerRegion = null;
+					panel.setRegion("center");
+				}
+
+				//4. set columns
+				if(!Ext.isEmpty(colMap[i])) {
+					panel.reconfigure(this.columnViews[colMap[i]]);
+				}			
+
+				//3. check visibility
+				if(colWidths[i] <= 0 && panel.getCollapsed() === false) {
+					panel.collapse();
+				}
+				else if(colWidths[i] > 0 && panel.getCollapsed() !== false) {
+					panel.suspendEvent("beforeexpand");
+					panel.expand(false);
+					panel.resumeEvent("beforeexpand");
+				}
+
+
 			}
+			Ext.resumeLayouts(true);
 	},
-	onPanelExpaneded:function(panel) {
+
+	onBeforePanelExpaneded:function(panel) {
 		var panels = this.query(">columntreecolumn");
 
-		var itemsToShow = Math.min(this.columnWidths.length,panels.length);
 		var indexOfExpaneded = panels.indexOf(panel);
-
-		if(panels.length - itemsToShow > indexOfExpaneded) {
-			this.suspendEvent("remove");
-			var i, len;
-			for(i = indexOfExpaneded + itemsToShow, len = panels.length; i < len; i++) {
-				this.remove(panels[i]);				
+		
+		var i, len;
+		this.suspendEvent("remove");
+		for(i = indexOfExpaneded, len = panels.length; i < len; i++) {
+			if(!Ext.isEmpty(this.numColumnConfig[panels.length - indexOfExpaneded])) {
+				break;
 			}
-			panels[indexOfExpaneded + itemsToShow -1].setSelection();
-			this.resumeEvent("remove");
-			this.redoLayout();
-		}
+			else {
+				this.remove(panels.pop());
+				panels[panels.length-1].setSelection();
 
+			}
+		}
+		this.resumeEvent("remove");
+		this.redoLayout();
 	}
 
 });

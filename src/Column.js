@@ -22,6 +22,7 @@ Ext.define('Ext.ux.ColumnTree.Column', {
 	enableColumnResize:false,
 	emptyText:"No Entries Found",
 	hideHeaders:true,
+	columns:[],
 	store:{
 		type:"chained"
 	},
@@ -67,16 +68,15 @@ Ext.define('Ext.ux.ColumnTree.Column', {
 	},
 
 	listeners:{
-		'selectionchange': function(grid, selected) {
-			var node = selected[0];
-			if(!Ext.isEmpty(node)) {
-				node.expand(false, function() {
+		'itemclick': function(grid, record, item, index) {
+			if(!Ext.isEmpty(record)) {
+				record.expand(false, function() {
 					if(!Ext.isEmpty(this.nextSibling())) {
-						this.nextSibling().setRootNode(node);
+						this.nextSibling().setRootNode(record);
 					}
 					else {
 						this.ownerCt.add(Ext.applyIf({
-							rootNode:node
+							rootNode:record,
 						},this.initialConfig));
 					}			
 				},this);

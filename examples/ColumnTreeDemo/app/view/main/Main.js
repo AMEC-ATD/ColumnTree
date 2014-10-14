@@ -62,8 +62,17 @@ Ext.define('ColumnTreeDemo.view.main.Main', {
                 url: "ExampleData/DemoNodes"
             }
         },
-        columns: [
+        columnViews: [[
             { flex:2, dataIndex:"Title", hideable: false}
-        ]
+        ],[
+            { flex:2, dataIndex:"Title", hideable: false},
+            { flex:2, dataIndex:"State", hideable: false}
+        ]],
+        numColumnConfig:{
+            1:{ colWidths:[1], colMap:[1]   },
+            2:{ colWidths:[3,1], colMap:[1,0]   },
+            3:{ colWidths:[1,2,1], colMap:[0,1,0]   }
+        },
+
     }]
 });
