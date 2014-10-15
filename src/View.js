@@ -4,7 +4,8 @@ Ext.define('Ext.ux.ColumnTree.View', {
 	requires:[
 		'Ext.data.TreeStore',
 		'Ext.ux.ColumnTree.Column',
-		'Ext.layout.container.Border'
+		'Ext.layout.container.Border',
+		'Ext.toolbar.Toolbar'
 	],
 
 
@@ -23,11 +24,25 @@ Ext.define('Ext.ux.ColumnTree.View', {
 			2:{ colWidths:[2,1], colMap:[0,0]	},
 			3:{ colWidths:[1,2,1], colMap:[0,0,0]	}
 		},
-		levelOffset:2,
+		levelOffset:1,
 		panelConfig:{
 			collapseMode:'mini'
-		}
+		},
+		breadCrumbEnabled:true
 	},
+
+	updateBreadCrumbEnabled: function(value) {
+		this.getViewModel().set("breadCrumbEnabled",value);
+	},
+
+	dockedItems:[{
+		xtype: 'toolbar',
+		cls:"BreadCrumbTrail",
+		bind:{
+			hidden:"{!breadCrumbEnabled}"
+		},
+		dock: 'top'
+	}],
 
 	viewModel:{
 		data:{
@@ -69,9 +84,17 @@ Ext.define('Ext.ux.ColumnTree.View', {
 	listeners:{
 		'add':function(container,comp, index) { 
 			this.redoLayout(); 
+			if(this.getBreadCrumbEnabled() === true) {
+				this.pushBreadCrumbTrail(comp.getRootNode());
+			}
 			comp.on("expand",this.onBeforePanelExpaneded,this);
 		},
-		'remove': function(container, comp) {this.redoLayout(); 	}
+		'remove': function(container, comp) {
+			this.redoLayout(); 
+			if(this.getBreadCrumbEnabled() === true) {	
+				this.popBreadCrumbTrail();
+			}
+		}
 	},
 	redoLayout:function() {
 			var panels = this.query('>columntreecolumn');
@@ -168,6 +191,41 @@ Ext.define('Ext.ux.ColumnTree.View', {
 		if(needsLayout) {
 			this.redoLayout();
 		}
+	},
+
+
+	popBreadCrumbTrail: function() {
+		var trail = this.down("toolbar[cls=BreadCrumbTrail]");
+		trail.remove(trail.items.last());
+		trail.remove(trail.items.last());
+	},
+
+	pushBreadCrumbTrail: function(node) {
+		this.down("toolbar[cls=BreadCrumbTrail]").add([{
+				text: node.get("Title"),
+				node:node,
+				handler:function(button) {
+					this.breadCrumbTrailClick(button.node);
+				},
+				scope:this
+			},{	xtype: 'tbtext', text: '>' }]);
+	},
+
+	breadCrumbTrailClick:function (node) {
+		var panels = this.query(">columntreecolumn");
+		var index = panels.length - 1;
+		var panel;
+		while(index > 0) {
+			panel = panels[index];
+			if(panel.getRootNode() === node) {
+				break;
+			}
+			else {
+				this.remove(panel);
+				index--;
+			}
+		}
+
 	}
 
 });
