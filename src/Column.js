@@ -1,3 +1,9 @@
+/**
+ * Grid that contains a list of nodes that are children of {Ext.ux.ColumnTree.Column.rootNode}.
+ * Uses the owner container's view model to get the {treeStore} that this column is a chained store
+ * of. The store technically contains all nodes in the tree, but has a filter function that only 
+ * shows nodes that have the same {Ext.data.Model.IdProperty} value as a child of the {RootNode}.
+ */
 Ext.define('Ext.ux.ColumnTree.Column', {
 	extend: 'Ext.grid.Panel',
 	alias: 'widget.columntreecolumn',
@@ -6,6 +12,10 @@ Ext.define('Ext.ux.ColumnTree.Column', {
 	],
 
 	config:{
+		/**
+		 * parent node of all nodes show in this store. 
+		 * @type {Ext.data.Model}
+		 */
 		rootNode:null
 	},
 

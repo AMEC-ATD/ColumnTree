@@ -1,3 +1,12 @@
+/**
+ * Shows a tree view in column form. Children of the root node are shown in the first column. When
+ * a node in a column is selected the children of that node are shown in the next column to the 
+ * right. The layout and content of the columns are controlled by the {colViews} and 
+ * {numColumnConfig} properties. If the left most column is clicked, and it isn't the children of
+ * the root node, its parent is expanded. In this way you can move back up the tree. In addition 
+ * enabling the breadcrumb trail or changing the collapseMode to null will allow traversal up the 
+ * tree. 
+ */
 Ext.define('Ext.ux.ColumnTree.View', {
 	extend: 'Ext.panel.Panel',
 	alias: 'widget.columntreeview',
@@ -8,31 +17,76 @@ Ext.define('Ext.ux.ColumnTree.View', {
 		'Ext.toolbar.Toolbar'
 	],
 
-
 	layout:"border",
 
 	defaultType:'columntreecolumn',
 
+	/**
+	 * Tree store to be used in this view. This is passed to the {Ext.ux.ColumnTree.Column}s via the
+	 * {treeStore} view model value. 
+	 * @type {Ext.data.TreeStore}
+	 */
 	store:null, // must be a treestore
 
 	config: {
+
+		/**
+		 * Available sets of {Ext.grid.Panel.columns} to use in each {Ext.ux.ColumnTree.Column}.
+		 * @type {Ext.grid.column.Column[][]}
+		 */
 		columnViews:[
 			[{ flex:2, dataIndex:"text", hideable: false}]
 		],
+
+		/**
+		 * Configures how {Ext.ux.ColumnTree.Column}s will be laid out. Object is indexed by the number 
+		 * of {Ext.ux.ColumnTree.Column}s currently visible. numColumnConfig[1] is used when one 
+		 * {Ext.ux.ColumnTree.Column} is visible, numColumnConfig[2] when two 
+		 * {Ext.ux.ColumnTree.Column}s are visible and so forth. Each config contains two properties: 
+		 * colWidths and ColMap. colWidths is used to define the {Ext.layout.container.Box.flex} values 
+		 * of each visible {Ext.ux.ColumnTree.Column}. For example  colWidths:[2,1] would make the 
+		 * first {Ext.ux.ColumnTree.Column} be 66% of the available area, and the second 
+		 * {Ext.ux.ColumnTree.Column} 33% of the area. colMap is used to define which 
+		 * {Ext.ux.ColumnTree.Column} set in columnViews should be used for each 
+		 * {Ext.ux.ColumnTree.Column}. For example colMap:[1,0] would use columnViews[1] for the 
+		 * {Ext.grid.Panel.columns} in the first visible {Ext.ux.ColumnTree.Column} and columnViews[0] 
+		 * for the {Ext.grid.Panel.columns} in the second visible visible {Ext.ux.ColumnTree.Column}. 
+		 * @type {Object}
+		 */
 		numColumnConfig:{
 			1:{ colWidths:[1], colMap:[0]	},
 			2:{ colWidths:[2,1], colMap:[0,0]	},
 			3:{ colWidths:[1,2,1], colMap:[0,0,0]	}
 		},
+
+		/**
+		 * Number of pixels to off set each subsequent level of the tree. This provides a subtle 
+		 * indicator that this is a hierarchy. 
+		 * @default 1
+		 * @type {Number}
+		 */
 		levelOffset:1,
+
+		/**
+		 * Config that is passed to each panel created. 
+		 * @type {Object}
+		 */
 		panelConfig:{
 			collapseMode:'mini'
 		},
+
+		/**
+		 * true to enable the breadcrumb trail.
+		 * @default true
+		 * @type {Boolean}
+		 */
 		breadCrumbEnabled:true
 	},
 
-	updateBreadCrumbEnabled: function(value) {
-		this.getViewModel().set("breadCrumbEnabled",value);
+	viewModel:{
+		data:{
+			treeStore:null
+		}
 	},
 
 	dockedItems:[{
@@ -44,10 +98,8 @@ Ext.define('Ext.ux.ColumnTree.View', {
 		dock: 'top'
 	}],
 
-	viewModel:{
-		data:{
-			treeStore:null
-		}
+	updateBreadCrumbEnabled: function(value) {
+		this.getViewModel().set("breadCrumbEnabled",value);
 	},
 
 	initComponent: function() {
@@ -77,10 +129,6 @@ Ext.define('Ext.ux.ColumnTree.View', {
 		});
 	},
 
-	getColumnsForPanel: function(width) {
-		return this.columnViews[0];
-	},
-
 	listeners:{
 		'add':function(container,comp, index) { 
 			this.redoLayout(); 
@@ -96,6 +144,7 @@ Ext.define('Ext.ux.ColumnTree.View', {
 			}
 		}
 	},
+
 	redoLayout:function() {
 			var panels = this.query('>columntreecolumn');
 
@@ -148,12 +197,12 @@ Ext.define('Ext.ux.ColumnTree.View', {
 					panel.setRegion("center");
 				}
 
-				//4. set columns
+				//3. set columns
 				if(!Ext.isEmpty(colMap[i])) {
 					panel.reconfigure(this.columnViews[colMap[i]]);
 				}			
 
-				//3. check visibility
+				//4. check visibility
 				if(colWidths[i] <= 0 && panel.getCollapsed() === false) {
 					panel.collapse();
 				}
